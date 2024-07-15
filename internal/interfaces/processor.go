@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"auth-api/internal/models"
 	"context"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
@@ -41,11 +40,9 @@ type IQueueProcessor interface {
 }
 
 type IQueueProducersProcessor interface {
-	Mails() IQueueProducerProcessor
 }
 
 type IQueueProducerProcessor interface {
-	Send(ctx context.Context, message *models.MailsProducerMsg) error
 }
 
 type IQueueProducerProvider interface {
@@ -55,10 +52,4 @@ type IQueueProducerProvider interface {
 // APIs
 
 type IAPIsProcessor interface {
-	AuthAPI() IAuthAPIProcessor
-}
-
-type IAuthAPIProcessor interface {
-	GetUserByID(ctx context.Context, userID string) (*models.UserDTO, error)
-	VerifySession(ctx context.Context, token string) (us *models.UserSession, err error)
 }

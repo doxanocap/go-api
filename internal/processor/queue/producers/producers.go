@@ -1,35 +1,24 @@
 package producers
 
 import (
+	"auth-api/config"
 	"auth-api/internal/interfaces"
-	"auth-api/internal/models"
-	"go.uber.org/zap"
-	"sync"
+	"auth-api/logger"
 )
 
 type Producers struct {
-	log              *zap.Logger
-	config           *models.Config
+	log              *logger.Logger
+	config           *config.Config
 	consumerProvider interfaces.IQueueProducerProvider
-
-	mailsProducer       interfaces.IQueueProducerProcessor
-	mailsProducerRunner sync.Once
 }
 
 func NewProducersProcessor(
-	config *models.Config,
+	config *config.Config,
 	consumersProvider interfaces.IQueueProducerProvider,
-	log *zap.Logger) *Producers {
+	log *logger.Logger) *Producers {
 	return &Producers{
 		log:              log,
 		config:           config,
 		consumerProvider: consumersProvider,
 	}
-}
-
-func (p *Producers) Mails() interfaces.IQueueProducerProcessor {
-	p.mailsProducerRunner.Do(func() {
-		p.mailsProducer = NewMailsProducer(p.config, p.consumerProvider, p.log.Named("[MAILs]"))
-	})
-	return p.mailsProducer
 }

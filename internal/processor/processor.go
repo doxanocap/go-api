@@ -1,17 +1,17 @@
 package processor
 
 import (
+	"auth-api/config"
 	"auth-api/internal/interfaces"
-	"auth-api/internal/models"
 	"auth-api/internal/processor/apis"
 	"auth-api/internal/processor/cache"
 	"auth-api/internal/processor/queue"
-	"go.uber.org/zap"
+	"auth-api/logger"
 )
 
 type Processor struct {
-	log                   *zap.Logger
-	config                *models.Config
+	log                   *logger.Logger
+	config                *config.Config
 	cacheProvider         interfaces.ICacheProvider
 	queueConsumerProvider interfaces.IQueueProducerProvider
 
@@ -22,7 +22,7 @@ type Processor struct {
 
 func InitProcessor(
 	queueConsumerProvider interfaces.IQueueProducerProvider, cacheProvider interfaces.ICacheProvider,
-	config *models.Config, log *zap.Logger) *Processor {
+	config *config.Config, log *logger.Logger) *Processor {
 	return &Processor{
 		log:    log,
 		config: config,
@@ -30,9 +30,9 @@ func InitProcessor(
 		cacheProvider:         cacheProvider,
 		queueConsumerProvider: queueConsumerProvider,
 
-		apisProcessor:  apis.NewAPIsProcessor(config, log.Named("[APIs]")),
-		cacheProcessor: cache.NewCacheProcessor(cacheProvider, log.Named("[CACHE]")),
-		queueProcessor: queue.NewQueueProcessor(config, queueConsumerProvider, log.Named("[QUEUE]")),
+		apisProcessor:  apis.NewAPIsProcessor(config, log.WithModule("APIs")),
+		cacheProcessor: cache.NewCacheProcessor(cacheProvider, log.WithModule("CACHE")),
+		queueProcessor: queue.NewQueueProcessor(config, queueConsumerProvider, log.WithModule("QUEUE")),
 	}
 }
 

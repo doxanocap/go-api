@@ -1,21 +1,13 @@
 package apis
 
 import (
-	"auth-api/internal/interfaces"
-	"auth-api/internal/models"
-	"go.uber.org/zap"
+	"auth-api/config"
+	"auth-api/logger"
 )
 
 type APIs struct {
-	authAPI interfaces.IAuthAPIProcessor
 }
 
-func NewAPIsProcessor(config *models.Config, log *zap.Logger) *APIs {
-	return &APIs{
-		authAPI: NewAuthAPIProcessor(config, log.Named("[AUTH_API]")),
-	}
-}
-
-func (a *APIs) AuthAPI() interfaces.IAuthAPIProcessor {
-	return a.authAPI
+func NewAPIsProcessor(config *config.Config, log *logger.Logger) *APIs {
+	return &APIs{}
 }

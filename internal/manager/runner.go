@@ -18,12 +18,12 @@ func Run(
 			if err = manager.Server().REST().Shutdown(ctx); err != nil {
 				return err
 			}
-			if err = manager.db.Close(); err != nil {
-				return err
-			}
-			if err = manager.cacheProvider.Close(); err != nil {
-				return err
-			}
+			//if err = manager.db.Close(); err != nil {
+			//	return err
+			//}
+			//if err = manager.cacheProvider.Close(); err != nil {
+			//	return err
+			//}
 			return nil
 		},
 	})

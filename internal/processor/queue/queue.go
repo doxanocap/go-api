@@ -1,28 +1,28 @@
 package queue
 
 import (
+	"auth-api/config"
 	"auth-api/internal/interfaces"
-	"auth-api/internal/models"
 	"auth-api/internal/processor/queue/producers"
-	"go.uber.org/zap"
+	"auth-api/logger"
 )
 
 type Queue struct {
-	log              *zap.Logger
-	config           *models.Config
+	log              *logger.Logger
+	config           *config.Config
 	consumerProvider interfaces.IQueueProducerProvider
 
 	producersProcessor interfaces.IQueueProducersProcessor
 }
 
-func NewQueueProcessor(config *models.Config,
-	consumersProvider interfaces.IQueueProducerProvider, log *zap.Logger) *Queue {
+func NewQueueProcessor(config *config.Config,
+	consumersProvider interfaces.IQueueProducerProvider, log *logger.Logger) *Queue {
 	return &Queue{
 		log:              log,
 		config:           config,
 		consumerProvider: consumersProvider,
 
-		producersProcessor: producers.NewProducersProcessor(config, consumersProvider, log.Named("[PRODUCERS]")),
+		producersProcessor: producers.NewProducersProcessor(config, consumersProvider, log.WithModule("PRODUCERS")),
 	}
 }
 

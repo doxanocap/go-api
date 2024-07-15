@@ -2,19 +2,24 @@ package cache
 
 import (
 	"auth-api/internal/interfaces"
+	"auth-api/logger"
 	"context"
 	"encoding/json"
 	"github.com/doxanocap/pkg/errs"
-	"go.uber.org/zap"
+	"log/slog"
 	"time"
+)
+
+const (
+	slogGroupKey = "cache"
 )
 
 type Cache struct {
 	provider interfaces.ICacheProvider
-	log      *zap.Logger
+	log      *logger.Logger
 }
 
-func NewCacheProcessor(provider interfaces.ICacheProvider, log *zap.Logger) *Cache {
+func NewCacheProcessor(provider interfaces.ICacheProvider, log *logger.Logger) *Cache {
 	return &Cache{
 		provider: provider,
 		log:      log,
@@ -22,12 +27,14 @@ func NewCacheProcessor(provider interfaces.ICacheProvider, log *zap.Logger) *Cac
 }
 
 func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
-	log := c.log.With(zap.String("key", key), zap.String("value", string(value)))
+	log := c.log.WithAttrs(slog.Group(slogGroupKey,
+		slog.String("key", key),
+		slog.String("value", string(value))))
 
 	err := c.provider.Set(ctx, key, value)
 	if err != nil {
 		log.Error(err.Error())
-		return errs.Wrap("cache.processor.Set", err)
+		return errs.Wrap("cache.proc.Set", err)
 	}
 
 	log.Info("set")
@@ -36,7 +43,9 @@ func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
 
 func (c *Cache) SetJSON(ctx context.Context, key string, value interface{}) error {
 	raw, err := json.Marshal(value)
-	log := c.log.With(zap.String("key", key), zap.String("value", string(raw)))
+	log := c.log.WithAttrs(slog.Group(slogGroupKey,
+		slog.String("key", key),
+		slog.String("value", string(raw))))
 
 	if err != nil {
 		log.Error(err.Error())
@@ -46,7 +55,7 @@ func (c *Cache) SetJSON(ctx context.Context, key string, value interface{}) erro
 	err = c.provider.Set(ctx, key, raw)
 	if err != nil {
 		log.Error(err.Error())
-		return errs.Wrap("cache.processor.SetJSON", err)
+		return errs.Wrap("cache.proc.SetJSON", err)
 	}
 
 	log.Info("setJSON")
@@ -55,10 +64,10 @@ func (c *Cache) SetJSON(ctx context.Context, key string, value interface{}) erro
 
 func (c *Cache) SetJSONWithTTL(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
 	raw, err := json.Marshal(value)
-	log := c.log.With(
-		zap.String("key", key),
-		zap.String("value", string(raw)),
-		zap.Duration("ttl", ttl))
+	log := c.log.WithAttrs(slog.Group(slogGroupKey,
+		slog.String("key", key),
+		slog.String("value", string(raw)),
+		slog.Duration("ttl", ttl)))
 
 	if err != nil {
 		log.Error(err.Error())
@@ -68,7 +77,7 @@ func (c *Cache) SetJSONWithTTL(ctx context.Context, key string, value interface{
 	err = c.provider.SetWithTTL(ctx, key, raw, ttl)
 	if err != nil {
 		log.Error(err.Error())
-		return errs.Wrap("cache.processor.SetJSONWithTTL", err)
+		return errs.Wrap("cache.proc.SetJSONWithTTL", err)
 	}
 
 	log.Info("setJSONWithTTL")
@@ -76,12 +85,13 @@ func (c *Cache) SetJSONWithTTL(ctx context.Context, key string, value interface{
 }
 
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, error) {
-	log := c.log.With(zap.String("key", key))
+	log := c.log.WithAttrs(slog.Group(slogGroupKey,
+		slog.String("key", key)))
 
 	raw, err := c.provider.Get(ctx, key)
 	if err != nil {
 		log.Error(err.Error())
-		return nil, errs.Wrap("cache.processor.Get", err)
+		return nil, errs.Wrap("cache.proc.Get", err)
 	}
 
 	log.Info("get")
@@ -89,12 +99,13 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, error) {
 }
 
 func (c *Cache) GetJSON(ctx context.Context, key string, v interface{}) error {
-	log := c.log.With(zap.String("key", key))
+	log := c.log.WithAttrs(slog.Group(slogGroupKey,
+		slog.String("key", key)))
 
 	raw, err := c.provider.Get(ctx, key)
 	if err != nil {
 		log.Error(err.Error())
-		return errs.Wrap("cache.processor.GetJSON", err)
+		return errs.Wrap("cache.proc.GetJSON", err)
 	}
 
 	err = json.Unmarshal(raw, v)
@@ -108,12 +119,13 @@ func (c *Cache) GetJSON(ctx context.Context, key string, v interface{}) error {
 }
 
 func (c *Cache) Delete(ctx context.Context, key string) error {
-	log := c.log.With(zap.String("key", key))
+	log := c.log.WithAttrs(slog.Group(slogGroupKey,
+		slog.String("key", key)))
 
 	err := c.provider.Delete(ctx, key)
 	if err != nil {
 		log.Error(err.Error())
-		return errs.Wrap("cache.processor.Delete", err)
+		return errs.Wrap("cache.proc.Delete", err)
 	}
 
 	log.Info("delete")
@@ -124,7 +136,7 @@ func (c *Cache) FlushAll(ctx context.Context) error {
 	err := c.provider.FlushAll(ctx)
 	if err != nil {
 		c.log.Error(err.Error())
-		return errs.Wrap("cache.processor.FlushAll", err)
+		return errs.Wrap("cache.proc.FlushAll", err)
 	}
 	c.log.Info("flushAll")
 	return nil

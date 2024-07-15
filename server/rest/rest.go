@@ -1,35 +1,31 @@
 package rest
 
 import (
+	"auth-api/config"
 	"auth-api/internal/interfaces"
-	"auth-api/internal/models"
 	"auth-api/internal/pkg/metrics"
-	"auth-api/server/rest/controllers"
+	"auth-api/logger"
 	"auth-api/server/rest/middlewares"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/doxanocap/pkg/router"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
 
 type REST struct {
-	log     *zap.Logger
-	config  *models.Config
+	log     *logger.Logger
+	config  *config.Config
 	router  *gin.Engine
 	server  *http.Server
 	manager interfaces.IManager
 
-	websocket *controllers.Websocket
-	workspace *controllers.Workspace
-
 	middlewares *middlewares.Middlewares
 }
 
-func InitREST(config *models.Config, manager interfaces.IManager, log *zap.Logger) *REST {
+func InitREST(config *config.Config, manager interfaces.IManager, log *logger.Logger) *REST {
 	m := metrics.NewAPIMetrics()
 	return &REST{
 		log:     log,
@@ -37,10 +33,7 @@ func InitREST(config *models.Config, manager interfaces.IManager, log *zap.Logge
 		manager: manager,
 		router:  router.InitGinRouter(config.ENV),
 
-		websocket: controllers.InitWebsocketController(config, manager.Service(), m, log.Named("[WS]")),
-		workspace: controllers.InitWorkspaceController(config, manager.Service(), m, log.Named("[WORKSPACE]")),
-
-		middlewares: middlewares.InitMiddlewares(manager, m, log.Named("[MIDDLEWARE]")),
+		middlewares: middlewares.InitMiddlewares(manager, m, log.WithModule("MIDDLEWARE")),
 	}
 }
 

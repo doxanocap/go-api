@@ -1,23 +1,21 @@
 package manager
 
 import (
+	"auth-api/config"
 	"auth-api/internal/interfaces"
-	"auth-api/internal/models"
-	"auth-api/internal/pkg/rabbitmq"
-	"auth-api/internal/pkg/redis"
 	"auth-api/internal/processor"
 	"auth-api/internal/repository"
 	"auth-api/internal/service"
+	"auth-api/logger"
 	"auth-api/server"
 	_ "github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 )
 
 type Manager struct {
 	db                    *sqlx.DB
-	log                   *zap.Logger
-	config                *models.Config
+	log                   *logger.Logger
+	config                *config.Config
 	cacheProvider         interfaces.ICacheProvider
 	queueConsumerProvider interfaces.IQueueProducerProvider
 
@@ -27,18 +25,16 @@ type Manager struct {
 	server     interfaces.IServer
 }
 
-func InitManager(db *sqlx.DB, log *zap.Logger, config *models.Config,
-	queueConsumerProvider *rabbitmq.ProducerClient, cacheProvider *redis.Conn) *Manager {
+func InitManager(log *logger.Logger, config *config.Config) *Manager {
+	// FIXME: import providers
 	m := &Manager{
-		db:                    db,
-		log:                   log,
-		config:                config,
-		cacheProvider:         cacheProvider,
-		queueConsumerProvider: queueConsumerProvider,
+		//db:     db,
+		log:    log,
+		config: config,
 	}
 
 	m.processor = processor.InitProcessor(m.queueConsumerProvider, m.cacheProvider, config, log)
-	m.repository = repository.InitRepository(db, config, m.Processor().Cache())
+	m.repository = repository.InitRepository(nil, config, m.Processor().Cache())
 	m.service = service.InitService(m, config, log)
 	m.server = server.InitServer(m, config, log)
 	return m

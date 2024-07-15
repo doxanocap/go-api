@@ -1,13 +1,9 @@
 package main
 
 import (
+	"auth-api/config"
 	"auth-api/internal/manager"
-	"auth-api/internal/models"
-	"auth-api/internal/pkg/postgres"
-	"auth-api/internal/pkg/rabbitmq"
-	"auth-api/internal/pkg/redis"
-	"github.com/doxanocap/pkg/config"
-	"github.com/doxanocap/pkg/logger"
+	"auth-api/logger"
 	"go.uber.org/fx"
 	"log"
 )
@@ -15,11 +11,8 @@ import (
 func main() {
 	app := fx.New(
 		fx.Provide(
-			config.InitConfig[models.Config],
-			logger.InitLogger[models.Config],
-			rabbitmq.NewProducerClient,
-			postgres.InitConnection,
-			redis.InitConnection,
+			config.InitConfig,
+			logger.InitSlogLogger,
 			manager.InitManager,
 		),
 		fx.Invoke(manager.Run),
